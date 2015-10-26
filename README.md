@@ -12,6 +12,40 @@ apk add --update mosquitto
 /usr/sbin/mosquitto -c /etc/mosquitto/*.conf
 ```
 
+# Data collection
+
+```sh
+GRAPHITE_HOST=$(container_ip.sh graphite)
+
+docker run -d -v /var/run/docker.sock:/var/run/docker.sock \
+    -e GRAPHITE_HOST=$GRAPHITE_HOST -e COLLECTD_HOST=<colllectd host> \
+    bobrik/collectd-docker
+```
+# Data storage
+
+Docker alpine collectd
+
+# Data visualization
+
+## Graphite docker container
+
+```sh
+#!/bin/bash
+[[ -d /tmp/log/{graphite,nginx} ]] || mkdir -p /tmp/log/{graphite,nginx}
+
+[[ $(docker inspect -f "{{.State.Running}}" graphite) == true ]] && docker start graphite
+
+docker run \
+   --name graphite \
+   -v /tmp/graphite:/opt/graphite \
+   -v /tmp/log:/var/log \
+   --rm -ti -e COLLECTD_DOCKER_APP=toxia-mgr \
+   -p 2080:80 \
+   -p 2003:2003 \
+   -p 8125:8125/udp \
+   hopsoft/graphite-statsd
+```
+
 # BIll Of Material
 
 ## Lamp
